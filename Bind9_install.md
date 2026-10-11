@@ -1,5 +1,5 @@
 
-#BIND9 SERVER
+# BIND9 SERVER
 
 # WARNING!
  You must free Port 53 for BIND9 if you are running more DNS services.
@@ -16,7 +16,7 @@
  Setting port=0 turns off dnsmasq's internal DNS server
  while keeping its DHCP server active.
 
-#Install BIND9__
+# Install BIND9
 
 	sudo apt update && sudo apt install -y bind9 bind9utils bind9-doc 
 
@@ -42,47 +42,47 @@ zone "100.168.192.in-addr.arpa" {
     file "/etc/bind/db.192.168.100";
 };
 ```
-# This tells BIND9: "I am the Master authority for lisbon.net and 
-# 192.168.100.x. Here are the paths to the database files where my records are stored."
+ This tells BIND9: "I am the Master authority for lisbon.net and 
+ 192.168.100.x. Here are the paths to the database files where my records are stored."
 
-# Create the Forward Zone Database, name to ip. (RECORDS)
-# Create a new forward database file:
+ Create the Forward Zone Database, name to ip. (RECORDS)
+ Create a new forward database file:
 
 	sudo nano /etc/bind/db.lisbon.net
 
-# Paste the following complete zone configuration:
+ Paste the following complete zone configuration:
 
 ```
 $TTL    604800
 @       IN      SOA     router.lisbon.net. admin.lisbon.net. (
-                              2         # Serial (version number)
-                         604800         # Refresh
-                          86400         # Retry
-                        2419200         # Expire
-                         604800 )       # Negative Cache TTL
-# This is Name Server (NS) Record (to comment in deamons use ;)
+                              2         ; Serial (version number)
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+; This is Name Server (NS) Record (to comment in deamons use ;)
 @       IN      NS      router.lisbon.net.
-# Address (A) Records: Hostname -> IPv4
+; Address (A) Records: Hostname -> IPv4
 router  IN      A       192.168.100.1
 desktop IN      A       192.168.100.50
-
 ```
-#| Quick breakdown:
-#|
-#|    @ represents the current zone name (lisbon.net).
-#|
-#|    SOA defines the master server (router.lisbon.net.) and admin email (admin.lisbon.net.).
-#|
-#|    NS declares router.lisbon.net. as the authoritative server.
-#|
-#|    A maps router to 192.168.100.1 and desktop to 192.168.100.50.
 
-# Create the Reverse Zone Database, IP to name.
-# Create a new Reverse database file:
+__Quick breakdown:__
+
+1.    @ represents the current zone name (lisbon.net).
+
+2.    SOA defines the master server (router.lisbon.net.) and admin email (admin.lisbon.net.).
+
+3.    NS declares router.lisbon.net. as the authoritative server.
+
+4.    A maps router to 192.168.100.1 and desktop to 192.168.100.50.
+
+ Create the Reverse Zone Database, IP to name.
+ Create a new Reverse database file:
 
 	sudo nano /etc/bind/db.192.168.100
 
-# Paste the following complete zone configuration:
+ Paste the following complete zone configuration:
 
 ```
 $TTL    604800
@@ -95,25 +95,24 @@ $TTL    604800
 @       IN      NS      router.lisbon.net.
 1       IN      PTR     router.lisbon.net.
 50      IN      PTR     desktop.lisbon.net.
-
 ```
-#| Quick breakdown: The number 1 stands for 192.168.100.1 and maps back to router.lab.lan.. 
-#| Note the trailing dot at the end of domain names to prevent BIND from appending .lab.lan twice.
+ Quick breakdown: The number 1 stands for 192.168.100.1 and maps back to router.lab.lan.. 
+ Note the trailing dot at the end of domain names to prevent BIND from appending .lab.lan twice.
 
-# Test your configuration files for typos:
-# Check general configuration (prints nothing if syntax is clean)
+ Test your configuration files for typos:
+ Check general configuration (prints nothing if syntax is clean)
 
 	sudo named-checkconf
 
-# Check forward zone file
+ Check forward zone file
 
 	sudo named-checkzone lab.lan /etc/bind/db.lab.lan
 
-# Check reverse zone file
+ Check reverse zone file
 
 	sudo named-checkzone 100.168.192.in-addr.arpa /etc/bind/db.192.168.100
 
-#If both zone checks output OK, restart BIND9:
+ If both zone checks output OK, restart BIND9:
 	
 	sudo systemctl restart bind9
 
