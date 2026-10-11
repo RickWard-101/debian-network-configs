@@ -122,7 +122,9 @@ __instalation is finish but we need to forward it or make it be recursive__
  1. Activate forward of IP on kernel:
    
     sudo sysctl -w net.ipv4.ip_forward=1
-
+ 
+ then open sysctl.conf
+ 
     sudo nano /etc/sysctl.conf
 
 Inside the conf file write:
@@ -150,12 +152,13 @@ To save rules after reboot on Debian must do:
 	
     dig @192.168.100.1 router.lab.lan +short
 
+ Needs to return 192.168.100.1
+
  Test Reverse DNS (Should return router.lab.lan.)
 	
     dig @192.168.100.1 -x 192.168.100.50 +short
-
- What success looks like: 
- The first command returns 192.168.100.1 and the second returns desktop.domain.net..
+ 
+  Needs to return desktop.domain.net
 
 Let's now configure Upstream Forwarders in BIND9:
 This will Enables public internet DNS resolution because right now, BIND9 only knows about domain.net. 
