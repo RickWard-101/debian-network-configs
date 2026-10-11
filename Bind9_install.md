@@ -2,7 +2,8 @@
 # BIND9 SERVER
 
 # WARNING!
- You must free Port 53 for BIND9 if you are running more DNS services.
+ We will use network configurations of README file. So check it before advancing!
+ Also, you must free Port 53 for BIND9 if you are running more DNS services.
  If you are running, for example, dnsmasq, before touching BIND9, verify that dnsmasq 
  is only handling DHCP and not blocking port 53!
  To disable DNS open /etc/dnsmasq.conf: 
@@ -20,14 +21,14 @@
 
 	sudo apt update && sudo apt install -y bind9 bind9utils bind9-doc 
 
- Let's Declare Zones in BIND9 so we can define which domains BIND9 owns.
+ Declare Zones in BIND9 so we can define which domains BIND9 owns.
  Open the local zone config file: (for LAN).
 
 	sudo nano /etc/bind/named.conf.local
 
  Wipe any previous test edits and paste these clean zone declarations:
- Forward Zone: Convert lab.lan names to IPs
-
+ 
+ Forward Zone: map domain.net names to IPs
 ```
 zone "domain.net" {
     type master;
@@ -35,7 +36,7 @@ zone "domain.net" {
 };
 ```
 
- Reverse Zone: Convert 192.168.100.x IPs to names
+ Reverse Zone: map 192.168.100.x IPs to names
 ```
 zone "100.168.192.in-addr.arpa" {
     type master;
@@ -76,7 +77,8 @@ __Quick breakdown:__
 3.    NS declares router.domain.net. as the authoritative server.
 
 4.    A maps router to 192.168.100.1 and desktop to 192.168.100.50.
-
+**(Also, for those who do not know, in order to comment on a daemon file you must ;)**
+    
  Create the Reverse Zone Database, IP to name.
  Create a new Reverse database file:
 
@@ -96,19 +98,20 @@ $TTL    604800
 1       IN      PTR     router.domain.net.
 50      IN      PTR     desktop.domain.net.
 ```
- Quick breakdown: The number 1 stands for 192.168.100.1 and maps back to router.domain.net. 
+ Quick breakdown: 
+ The number 1 stands for 192.168.100.1 and maps back to router.domain.net. 
  Note the trailing dot at the end of domain names to prevent BIND from appending .domain.net twice.
 
- Test your configuration files for typos:
+ Test the configuration files for typos:
  Check general configuration (prints nothing if syntax is clean)
 
 	sudo named-checkconf
 
- Check forward zone file
+ Check forward zone file:
 
 	sudo named-checkzone domain.net /etc/bind/db.domain.net
 
- Check reverse zone file
+ Check reverse zone file:
 
 	sudo named-checkzone 100.168.192.in-addr.arpa /etc/bind/db.192.168.100
 
@@ -119,7 +122,7 @@ $TTL    604800
 __instalation is finish but we need to forward it or make it be recursive__
 
 
- 1. Activate forward of IP on kernel:
+ Activate forward of IP on kernel:
    
     sudo sysctl -w net.ipv4.ip_forward=1
  
@@ -127,26 +130,26 @@ __instalation is finish but we need to forward it or make it be recursive__
  
     sudo nano /etc/sysctl.conf
 
-Inside the conf file write:
+ Inside the conf file write:
 
     net.ipv4.ip_forward=1
 
-close and save it.
+ close and save it.
 
- 2. activate NAT to the interface with exit to WAN (internet this case):
+ Activate NAT to the interface with exit to WAN (internet this case):
 
     sudo iptables -t nat -A POSTROUTING -o (insert your net interface) -j MASQUERADE
 
-To save rules after reboot on Debian must do:
+ To save rules after reboot on Debian must do:
 
     sudo apt install iptables-persistent
     
     sudo netfilter-persistent save
 
- Now that BIND9 is running, the next crucial steps are testing your local zone queries and configuring 
- upstream forwarding so your network can resolve both your private domain.net domain and public internet sites (like google.com).
+ Now that BIND9 is running, the next steps are testing the local zone queries and configuring 
+ upstream forwarding so the network can resolve both your private domain.net domain and public internet sites (like google.com).
  but before that, test Local Resolution with dig.
- Run a forward and reverse lookup against your router's BIND9 service:
+ Run a forward and reverse lookup against your/this config router's BIND9 service:
 
  Test Forward DNS (Should return 192.168.100.1)
 	
@@ -160,16 +163,16 @@ To save rules after reboot on Debian must do:
  
   Needs to return desktop.domain.net
 
-Let's now configure Upstream Forwarders in BIND9:
-This will Enables public internet DNS resolution because right now, BIND9 only knows about domain.net. 
-If a client asks for google.com, BIND9 will fail. We need to tell BIND9 where to forward external queries.
+ Now configure Upstream Forwarders in BIND9:
+ This will Enables public internet DNS resolution because right now, BIND9 only knows about domain.net. 
+ If a client asks for google.com, BIND9 will fail. We need to tell BIND9 where to forward external queries.
 
-Open named.conf.options:
+ Open named.conf.options:
 
     sudo nano /etc/bind/named.conf.options
 
  Find the forwarders block, uncomment it, and add external DNS servers (like Cloudflare or Google):
-
+```
 options {
         directory "/var/cache/bind";
 
@@ -184,7 +187,7 @@ options {
         dnssec-validation auto;
         listen-on-v6 { any; };
 };
-
+```
  Save, check syntax, and restart BIND9:
 
     sudo named-checkconf
