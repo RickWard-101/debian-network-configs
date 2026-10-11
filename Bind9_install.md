@@ -1,25 +1,22 @@
 
-_-_-_|||| BIND9 server ||||_-_-_
+__BIND9 SERVER__
 
 # WARNING!
-# !You must free Port 53 for BIND9 if you are running more DNS services.
-# 
-# If you are running, for example, dnsmasq, before touching BIND9, verify that dnsmasq 
-# is only handling DHCP and not blocking port 53!
-# To disable DNS open /etc/dnsmasq.conf:
-    
+ !You must free Port 53 for BIND9 if you are running more DNS services.
+ If you are running, for example, dnsmasq, before touching BIND9, verify that dnsmasq 
+ is only handling DHCP and not blocking port 53!
+ To disable DNS open /etc/dnsmasq.conf: 
+
     sudo nano /etc/dnsmasq.conf
 
-# Ensure the line port=0 is present at the bottom. Then restart dnsmasq:
+ Ensure the line port=0 is present at the bottom. Then restart dnsmasq:
 
     sudo systemctl restart dnsmasq
 
-# Setting port=0 turns off dnsmasq's internal DNS server
-# while keeping its DHCP server active.
+ Setting port=0 turns off dnsmasq's internal DNS server
+ while keeping its DHCP server active.
 
-_________________
-||Install BIND9||
------------------
+__Install BIND9__
 
    sudo apt update && sudo apt install -y bind9 bind9utils bind9-doc 
 
@@ -31,17 +28,23 @@ _________________
 # Wipe any previous test edits and paste these clean zone declarations:
 
 # Forward Zone: Convert lab.lan names to IPs
+
+```
 zone "lisbon.net" {
     type master;
     file "/etc/bind/db.lab.lan";
 };
 
+```
+
 # Reverse Zone: Convert 192.168.100.x IPs to names
+```
 zone "100.168.192.in-addr.arpa" {
     type master;
     file "/etc/bind/db.192.168.100";
 };
 
+```
 # This tells BIND9: "I am the Master authority for lisbon.net and 
 # 192.168.100.x. Here are the paths to the database files where my records are stored."
 
@@ -52,6 +55,7 @@ zone "100.168.192.in-addr.arpa" {
 
 # Paste the following complete zone configuration:
 
+```
 $TTL    604800
 @       IN      SOA     router.lisbon.net. admin.lisbon.net. (
                               2         # Serial (version number)
@@ -65,6 +69,7 @@ $TTL    604800
 router  IN      A       192.168.100.1
 desktop IN      A       192.168.100.50
 
+```
 #| Quick breakdown:
 #|
 #|    @ represents the current zone name (lisbon.net).
@@ -82,6 +87,7 @@ desktop IN      A       192.168.100.50
 
 # Paste the following complete zone configuration:
 
+```
 $TTL    604800
 @       IN      SOA     router.lisbon.net admin.lisbon.net. (
                               1         
@@ -93,6 +99,7 @@ $TTL    604800
 1       IN      PTR     router.lisbon.net.
 50      IN      PTR     desktop.lisbon.net.
 
+```
 #| Quick breakdown: The number 1 stands for 192.168.100.1 and maps back to router.lab.lan.. 
 #| Note the trailing dot at the end of domain names to prevent BIND from appending .lab.lan twice.
 
@@ -113,7 +120,7 @@ $TTL    604800
 	
 	sudo systemctl restart bind9
 
-____________________________________________________ instalation is finish but we need to forward it or make it be recursive.
+__ instalation is finish but we need to forward it or make it be recursive __
 
 
 # first activate forward of IP on kernel:
