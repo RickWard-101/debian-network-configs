@@ -1,49 +1,46 @@
 
-__BIND9 SERVER__
+#BIND9 SERVER
 
 # WARNING!
- !You must free Port 53 for BIND9 if you are running more DNS services.
+ You must free Port 53 for BIND9 if you are running more DNS services.
  If you are running, for example, dnsmasq, before touching BIND9, verify that dnsmasq 
  is only handling DHCP and not blocking port 53!
  To disable DNS open /etc/dnsmasq.conf: 
 
-    sudo nano /etc/dnsmasq.conf
+	sudo nano /etc/dnsmasq.conf
 
  Ensure the line port=0 is present at the bottom. Then restart dnsmasq:
 
-    sudo systemctl restart dnsmasq
+	sudo systemctl restart dnsmasq
 
  Setting port=0 turns off dnsmasq's internal DNS server
  while keeping its DHCP server active.
 
-__Install BIND9__
+#Install BIND9__
 
-   sudo apt update && sudo apt install -y bind9 bind9utils bind9-doc 
+	sudo apt update && sudo apt install -y bind9 bind9utils bind9-doc 
 
-# Let's Declare Zones in BIND9 so we can define which domains BIND9 owns.
-# Open the local zone config file: (for LAN).
+ Let's Declare Zones in BIND9 so we can define which domains BIND9 owns.
+ Open the local zone config file: (for LAN).
 
-    sudo nano /etc/bind/named.conf.local
+	sudo nano /etc/bind/named.conf.local
 
-# Wipe any previous test edits and paste these clean zone declarations:
-
-# Forward Zone: Convert lab.lan names to IPs
+ Wipe any previous test edits and paste these clean zone declarations:
+ Forward Zone: Convert lab.lan names to IPs
 
 ```
 zone "lisbon.net" {
     type master;
     file "/etc/bind/db.lab.lan";
 };
-
 ```
 
-# Reverse Zone: Convert 192.168.100.x IPs to names
+ Reverse Zone: Convert 192.168.100.x IPs to names
 ```
 zone "100.168.192.in-addr.arpa" {
     type master;
     file "/etc/bind/db.192.168.100";
 };
-
 ```
 # This tells BIND9: "I am the Master authority for lisbon.net and 
 # 192.168.100.x. Here are the paths to the database files where my records are stored."
