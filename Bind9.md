@@ -2,7 +2,7 @@
 # BIND9 SERVER
 
 # WARNING!
- Bedire anything, you must free Port 53 for BIND9 if you are running more DNS services.
+ Before anything, you must free Port 53 for BIND9 if you are running more DNS services.
  If you are running, for example, dnsmasq, before touching BIND9, verify that dnsmasq 
  is only handling DHCP and not blocking port 53!
  To disable DNS open dnsmasq.conf: 
