@@ -2,11 +2,10 @@
 # BIND9 SERVER
 
 # WARNING!
- We will use network configurations of README file. So check it before advancing!
- Also, you must free Port 53 for BIND9 if you are running more DNS services.
+ Bedire anything, you must free Port 53 for BIND9 if you are running more DNS services.
  If you are running, for example, dnsmasq, before touching BIND9, verify that dnsmasq 
  is only handling DHCP and not blocking port 53!
- To disable DNS open /etc/dnsmasq.conf: 
+ To disable DNS open dnsmasq.conf: 
 
 	sudo nano /etc/dnsmasq.conf
 
@@ -16,6 +15,10 @@
 
  Setting port=0 turns off dnsmasq's internal DNS server
  while keeping its DHCP server active.
+ 
+ Also another thing, there must be two networking interfaces. For easier examples
+ i will make the IP of LAN interface the following: 192.168.100.1/24. Change as you
+ see fit.
 
 # Install BIND9
 
@@ -121,8 +124,8 @@ $TTL    604800
 
 __instalation is finish but we need to forward it or make it be recursive__
 
-
- Activate forward of IP on kernel:
+ Before going into that we need our clients to be able to acess the internet.
+ For that activate forward of IP on kernel:
    
     sudo sysctl -w net.ipv4.ip_forward=1
  
@@ -146,6 +149,8 @@ __instalation is finish but we need to forward it or make it be recursive__
     
     sudo netfilter-persistent save
 
+ __You must have netfilter installed for IPtabales__
+
  Now that BIND9 is running, the next steps are testing the local zone queries and configuring 
  upstream forwarding so the network can resolve both your private domain.net domain and public internet sites (like google.com).
  but before that, test Local Resolution with dig.
@@ -163,8 +168,12 @@ __instalation is finish but we need to forward it or make it be recursive__
  
   Needs to return desktop.domain.net
 
- Now configure Upstream Forwarders in BIND9:
- This will Enables public internet DNS resolution because right now, BIND9 only knows about domain.net. 
+ Now configure Upstream Forwarders in BIND9. 
+ 
+# FOR SECURITY REASONS DON'T USE FORWARDER | RECURSIVE BELLOW!
+ 
+ __FORWARDER (RELAY MODE)__
+ This will Enables public internet DNS resolution because right now, BIND9 only knows about      domain.net. 
  If a client asks for google.com, BIND9 will fail. We need to tell BIND9 where to forward external queries.
 
  Open named.conf.options:
@@ -172,22 +181,86 @@ __instalation is finish but we need to forward it or make it be recursive__
     sudo nano /etc/bind/named.conf.options
 
  Find the forwarders block, uncomment it, and add external DNS servers (like Cloudflare or Google):
+ (!on allow-query choose between any or trusted according to your security means!)
+
 ```
+acl trusted {
+    127.0.0.1;
+    192.168.100.0/24;    # Change to match your local network subnet
+};
+
 options {
-        directory "/var/cache/bind";
+    directory "/var/cache/bind";
 
-        forwarders {
-                1.1.1.1;
-                8.8.8.8;
-        };
+    // Security: Only allow your local network to query this server
+    allow-query { trusted; };
+    allow-recursion { trusted; };
 
-        allow-query { any; };
-        recursion yes;
+    // Forwarder Setup
+    forwarders {
+        1.1.1.1;       
+        8.8.8.8;       
+    };
+    forward only;      # Strictly use forwarders, do not try to contact root servers directly
 
-        dnssec-validation auto;
-        listen-on-v6 { any; };
+    // Security Hardening
+    dnssec-validation auto;
+    listen-on-v6 { any; };
+    listen-on { any; };
+    
+    // Hide version for security
+    version "none";
 };
 ```
+
+ Save, check syntax, and restart BIND9:
+
+    sudo named-checkconf
+	sudo systemctl restart bind9
+
+ Verify external resolution:
+
+	dig @192.168.100.1 google.com +short
+
+ It should return public IP addresses for Google!
+ 
+ __RECURSIVE (FULL RESOLUTION)__
+ 
+ The Full Recursive Configuration (Maximum Privacy/Independence).
+ Use this if you do not trust external DNS providers and want your server to talk directly 
+ to the  internet's root and authoritative servers.
+ Open named.conf.options:
+
+    sudo nano /etc/bind/named.conf.options
+ 
+ inside write down: 
+```
+ acl trusted {
+    127.0.0.1;
+    192.168.100.0/24;   
+};
+
+options {
+    directory "/var/cache/bind";
+    
+    allow-query { trusted; };
+    recursion yes;
+    
+    allow-recursion { trusted; };
+    forwarders {};
+    
+    dnssec-validation auto;
+    listen-on-v6 { any; };
+    
+    listen-on { any; };
+    version "none";
+};
+```
+ Quick breakdown:
+ (acl trusted & allow-query) are crucial for security. Without this, your BIND server becomes an "open resolver," which hackers can abuse to launch massive DDoS attacks against other websites.
+ (directory) tells BIND where to store its runtime files and cache data.
+ (dnssec-validation auto) Protects your network against DNS spoofing/poisoning attacks by verifying cryptographic signatures on domains.
+ 
  Save, check syntax, and restart BIND9:
 
     sudo named-checkconf
