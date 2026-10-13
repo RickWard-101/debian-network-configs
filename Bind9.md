@@ -141,7 +141,7 @@ __instalation is finish but we need to forward it or make it be recursive__
 
  Activate NAT to the interface with exit to WAN (internet this case):
 
-    sudo iptables -t nat -A POSTROUTING -o (insert your net interface) -j MASQUERADE
+    sudo iptables -t nat -A POSTROUTING -o (WAN interface) -j MASQUERADE
 
  To save rules after reboot on Debian must do:
 
