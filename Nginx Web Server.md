@@ -2,11 +2,14 @@
 
 This guide covers the installation and configuration of the **Nginx** web server on Debian, used to host internal infrastructure and serve web pages under the local domain (`web.domain.net`).
 
-__!WARNING!__
+__WARNING.__ 
+
 In this setup, Nginx acts as the local HTTP server listening on port 80. Combined with the local **BIND9 DNS server**, client machines on the LAN (`192.168.100.0/24`) can resolve `web.domain.net` directly to the gateway/server IP and instantly load the domain presentation dashboard.
 **Make sure to check the authoritative DNS server installation of BIND9.**
+And now you will not be able to access the domain over WAN because the 13 DNS ROOT servers **don't know who domain.net is!**. Use a VPN from within the LAN to be able just type www.domain.net and work. 
 
 __Instalation and configuration__
+
 Update package lists and install Nginx on the Debian server:
 
         sudo apt update && sudo apt install nginx -y
@@ -19,7 +22,7 @@ Create the generic index file at /var/www/web.domain.net:
 
         sudo vim /var/www/domain.net/index.html
         
-**Create the index to your liking, this is just default HTML index file.**
+**Create the index to your liking, this is just default fun HTML index file.**
 
 ```
         <!DOCTYPE html>
@@ -54,7 +57,7 @@ Create the generic index file at /var/www/web.domain.net:
 ```
 
 __Configure virtual host on Nginx__
-On Nginx, every site / service has it's own configuration file at /etc/nginx/sites-available/.
+On Nginx, every site/ service has it's own configuration file at /etc/nginx/sites-available/.
        
         sudo vim /etc/nginx/sites-available/domain.net
 
@@ -88,9 +91,9 @@ server {
 This tells Nginx to "listen" on port 80 (the default port for the unencrypted HTTP protocol) for both IPv4 and IPv6.
 
 2. server_name web.domain.net domain.net:
-This is the identifier. When BIND9 translates this name to the IP 192.168.100.1 and the request reaches Debian, Nginx reads the HTTP header. If the browser requested web.domain.net or domain.net, Nginx knows to use this specific configuration (not the default Debian page).
+This is the identifier. When **BIND9** translates this name to the IP 192.168.100.1 and the request reaches Debian, Nginx reads the HTTP header. If the browser requested web.domain.net or domain.net, Nginx knows to use this specific configuration (not the default Debian page).
 
-3. «root /var/www/domain.net:
+3. root /var/www/domain.net:
 This indicates the path on the hard drive where your website files are stored. It's the root directory where you created index.html.
 
 4. index index.html:
@@ -112,12 +115,34 @@ Create a symbolic link to activate the site:
 
         sudo ln -s /etc/nginx/sites-available/domain.net /etc/nginx/sites-enabled/
 
-Test syntax and reload the service:
+1. **But why?** 
+Because, in /etc/nginx/sites-available/ *(Available)* This is where you save all the actual configuration files for each site. 
+Nginx doesn't read this folder directly. It only acts as a "storage" or draft.
+On /etc/nginx/sites-enabled/ *(Active)*, This is the folder that Nginx actively reads whenever it starts or is reloaded. 
+If a file is here, the site goes online.
+
+2. **But why Use a Symbolic Link Instead of Copying the File?**
+Using a symbolic link offers three major practical advantages:
+
+~>It avoids duplication and synchronization errors. 
+Because the file in the sites-enabled folder points directly to the original file in sites-available, you only need to edit the configuration in one place. 
+Any changes are automatically reflected on both sides.
+
+~>Instant activation and deactivation. To activate the site, simply create the shortcut.
+To deactivate the site (for example, during maintenance or if you detect a security flaw), simply delete the symbolic link in the sites-enabled folder. 
+Your original configuration remains intact and secure within the sites-available folder.
+
+~>Organization. Allows you to keep dozens of configurations prepared (in sites-available) and have only a few actually active on the server (in sites-enabled).
+
+
+__Test syntax and reload the service:__
 
         sudo nginx -t
         sudo systemctl reload nginx
         
-# Troubleshooting & Common Issues ("What if...?")
+While in LAN you should be able to type on browser domain.net and be able to get the page!
+
+## Troubleshooting & Common Issues ("What if...?")
 ❌ Issue 1: Browsing to http://web.domain.net results in a "Server Not Found" or DNS error on client machines.
 
 **Cause**: The DNS server (BIND9) does not have an A record mapping web to the server's IP, or the client hasn't refreshed its DHCP lease/DNS cache.
@@ -137,3 +162,7 @@ How to fix:
 Re-apply ownership permissions: 
         sudo chown -R www-data:www-data /var/www/domain.net.
 Confirm that index.html exists inside the target folder.
+
+# What about 433 port and https?
+
+
