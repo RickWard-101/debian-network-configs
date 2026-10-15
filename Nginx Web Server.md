@@ -14,11 +14,11 @@ Update package lists and install Nginx on the Debian server:
 Create a dedicated directory for your domain's files and set up an HTML presentation page.
 
         sudo mkdir -p /var/www/domain.net
-        
+ 
 Create the generic index file at /var/www/web.domain.net:
 
-        vim /var/www/domain.net/index.html
-
+        sudo vim /var/www/domain.net/index.html
+        
 **Create the index to your liking, this is just default HTML index file.**
 
 ```
@@ -70,7 +70,7 @@ server {
 
     server_name web.domain.net domain.net;
 
-    root /var/www/domain;
+    root /var/www/domain.net;
     index index.html;
 
     location / {
@@ -90,7 +90,7 @@ This tells Nginx to "listen" on port 80 (the default port for the unencrypted HT
 2. server_name web.domain.net domain.net:
 This is the identifier. When BIND9 translates this name to the IP 192.168.100.1 and the request reaches Debian, Nginx reads the HTTP header. If the browser requested web.domain.net or domain.net, Nginx knows to use this specific configuration (not the default Debian page).
 
-3. root /var/www/web.domain:
+3. «root /var/www/domain.net:
 This indicates the path on the hard drive where your website files are stored. It's the root directory where you created index.html.
 
 4. index index.html:
@@ -110,7 +110,7 @@ __Enable the Site & Reload Nginx__
 
 Create a symbolic link to activate the site:
 
-        sudo ln -s /etc/nginx/sites-available/web.domain.net /etc/nginx/sites-enabled/
+        sudo ln -s /etc/nginx/sites-available/domain.net /etc/nginx/sites-enabled/
 
 Test syntax and reload the service:
 
@@ -131,9 +131,9 @@ Test resolution directly from the client using: dig @192.168.100.1 web.domain.ne
 
 ❌ Issue 2: Nginx returns a 403 Forbidden error when accessing the page.
 
-**Cause**: Incorrect file permissions on /var/www/web.domain.net or missing index.html file in the root directory.
+**Cause**: Incorrect file permissions on /var/www/domain.net or missing index.html file in the root directory.
 
 How to fix:
 Re-apply ownership permissions: 
-        sudo chown -R www-data:www-data /var/www/web.domain.net.
+        sudo chown -R www-data:www-data /var/www/domain.net.
 Confirm that index.html exists inside the target folder.
