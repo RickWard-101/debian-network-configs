@@ -77,13 +77,13 @@ server {
 __Enable the Site & Reload Nginx__
 
 Create a symbolic link to activate the site:
-        sudo ln -s /etc/nginx/sites-available/web.rickwardo.net /etc/nginx/sites-enabled/
+        sudo ln -s /etc/nginx/sites-available/web.domain.net /etc/nginx/sites-enabled/
 Test syntax and reload the service:
         sudo nginx -t
         sudo systemctl reload nginx
         
 # Troubleshooting & Common Issues ("What if...?")
-❌ Issue 1: Browsing to http://web.rickwardo.net results in a "Server Not Found" or DNS error on client machines.
+❌ Issue 1: Browsing to http://web.domain.net results in a "Server Not Found" or DNS error on client machines.
 
 **Cause**: The DNS server (BIND9) does not have an A record mapping web to the server's IP, or the client hasn't refreshed its DHCP lease/DNS cache.
 
