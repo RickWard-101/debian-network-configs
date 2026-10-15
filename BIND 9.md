@@ -23,12 +23,12 @@ __WARNING!__
 
 __Install BIND9__
 
-	sudo apt update && sudo apt install -y bind9 bind9utils bind9-doc 
+        sudo apt update && sudo apt install -y bind9 bind9utils bind9-doc 
 
  Declare Zones in BIND9 so we can define which domains BIND9 owns.
  Open the local zone config file: (for LAN).
 
-	sudo nano /etc/bind/named.conf.local
+        sudo vim /etc/bind/named.conf.local
 
  Wipe any previous test edits and paste these clean zone declarations:
  
@@ -150,7 +150,7 @@ __instalation is finish but we need to forward it or make it be recursive__
     
         sudo netfilter-persistent save
 
- __You must have netfilter installed for IPtabales__
+ **You must have netfilter installed for IPtabales**
 
  Now that BIND9 is running, the next steps are testing the local zone queries and configuring 
  upstream forwarding so the network can resolve both your private domain.net domain and public internet sites (like google.com).
@@ -159,11 +159,11 @@ __instalation is finish but we need to forward it or make it be recursive__
 
  Test Forward DNS (Should return 192.168.100.1)
 	
-        dig @192.168.100.1 router.lab.lan +short
+        dig @192.168.100.1 router.domain.net +short
 
  Needs to return 192.168.100.1
 
- Test Reverse DNS (Should return router.lab.lan.)
+ Test Reverse DNS (Should return router.domain.net.)
 	
         dig @192.168.100.1 -x 192.168.100.50 +short
  
@@ -174,7 +174,7 @@ __instalation is finish but we need to forward it or make it be recursive__
 # FOR SECURITY REASONS DON'T USE FORWARDER | RECURSIVE BELLOW!
  
  __FORWARDER (RELAY MODE)__
- This will Enables public internet DNS resolution because right now, BIND9 only knows about      domain.net. 
+ This will Enables public internet DNS resolution because right now, BIND9 only knows about domain.net. 
  If a client asks for google.com, BIND9 will fail. We need to tell BIND9 where to forward external queries.
 
  Open named.conf.options:
