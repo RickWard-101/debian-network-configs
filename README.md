@@ -9,7 +9,7 @@ be applied to real physical hardware.
 It can be used as a safe copy & paste tool for when working with configurations on servers.
 I advice to follow this project to learn more about networking.
 
-##Important details/ warnings:
+# Important details/ warnings:
 __Details about the networking__
 
 Every server that needs two networking interfaces, in all configuration files, the LAN interface will always
