@@ -3,10 +3,9 @@
 This guide covers the installation and configuration of the **Nginx** web server on Debian, used to host internal infrastructure and serve web pages under the local domain (`web.domain.net`).
 
 __WARNING.__ 
-
 In this setup, Nginx acts as the local HTTP server listening on port 80. Combined with the local **BIND9 DNS server**, client machines on the LAN (`192.168.100.0/24`) can resolve `web.domain.net` directly to the gateway/server IP and instantly load the domain presentation dashboard.
 **Make sure to check the authoritative DNS server installation of BIND9.**
-And now you will not be able to access the domain over WAN because the 13 DNS ROOT servers **don't know who domain.net is!**. Use a VPN from within the LAN to be able just type www.domain.net and work. 
+And no, you will not be able to access the domain over WAN because the 13 DNS ROOT servers **don't know who domain.net is!** Use a VPN from within the LAN to be able just type www.domain.net and work. 
 
 __Instalation and configuration__
 
@@ -85,7 +84,7 @@ server {
 }
 ```
 
-### What does each line you pasted mean:
+__What does each line you pasted means:__
 
 1. listen 80; and listen [::]:80:
 This tells Nginx to "listen" on port 80 (the default port for the unencrypted HTTP protocol) for both IPv4 and IPv6.
@@ -124,15 +123,15 @@ If a file is here, the site goes online.
 2. **But why Use a Symbolic Link Instead of Copying the File?**
 Using a symbolic link offers three major practical advantages:
 
-~>It avoids duplication and synchronization errors. 
+    ~>It avoids duplication and synchronization errors. 
 Because the file in the sites-enabled folder points directly to the original file in sites-available, you only need to edit the configuration in one place. 
 Any changes are automatically reflected on both sides.
 
-~>Instant activation and deactivation. To activate the site, simply create the shortcut.
+    ~>Instant activation and deactivation. To activate the site, simply create the shortcut.
 To deactivate the site (for example, during maintenance or if you detect a security flaw), simply delete the symbolic link in the sites-enabled folder. 
 Your original configuration remains intact and secure within the sites-available folder.
 
-~>Organization. Allows you to keep dozens of configurations prepared (in sites-available) and have only a few actually active on the server (in sites-enabled).
+    ~>Organization. Allows you to keep dozens of configurations prepared (in sites-available) and have only a few actually active on the server (in sites-enabled).
 
 
 __Test syntax and reload the service:__

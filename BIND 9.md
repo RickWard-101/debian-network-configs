@@ -1,17 +1,18 @@
 
 # BIND9 SERVER
 
-# WARNING!
+__WARNING!__
+
  Before anything, you must free Port 53 for BIND9 if you are running more DNS services.
  If you are running, for example, dnsmasq, before touching BIND9, verify that dnsmasq 
  is only handling DHCP and not blocking port 53!
  To disable DNS open dnsmasq.conf: 
 
-	sudo nano /etc/dnsmasq.conf
+        sudo vim /etc/dnsmasq.conf
 
  Ensure the line port=0 is present at the bottom. Then restart dnsmasq:
 
-	sudo systemctl restart dnsmasq
+        sudo systemctl restart dnsmasq
 
  Setting port=0 turns off dnsmasq's internal DNS server
  while keeping its DHCP server active.
@@ -20,7 +21,7 @@
  i will make the IP of LAN interface the following: 192.168.100.1/24. Change as you
  see fit.
 
-# Install BIND9
+__Install BIND9__
 
 	sudo apt update && sudo apt install -y bind9 bind9utils bind9-doc 
 
@@ -52,7 +53,7 @@ zone "100.168.192.in-addr.arpa" {
  Create the Forward Zone Database, name to ip. (RECORDS)
  Create a new forward database file:
 
-	sudo nano /etc/bind/db.domain.net
+        sudo vim /etc/bind/db.domain.net
 
  Paste the following complete zone configuration:
 
@@ -85,7 +86,7 @@ __Quick breakdown:__
  Create the Reverse Zone Database, IP to name.
  Create a new Reverse database file:
 
-	sudo nano /etc/bind/db.192.168.100
+        sudo vim /etc/bind/db.192.168.100
 
  Paste the following complete zone configuration:
 
@@ -108,46 +109,46 @@ $TTL    604800
  Test the configuration files for typos:
  Check general configuration (prints nothing if syntax is clean)
 
-	sudo named-checkconf
+        sudo named-checkconf
 
  Check forward zone file:
 
-	sudo named-checkzone domain.net /etc/bind/db.domain.net
+        sudo named-checkzone domain.net /etc/bind/db.domain.net
 
  Check reverse zone file:
 
-	sudo named-checkzone 100.168.192.in-addr.arpa /etc/bind/db.192.168.100
+        sudo named-checkzone 100.168.192.in-addr.arpa /etc/bind/db.192.168.100
 
  If both zone checks output OK, restart BIND9:
 	
-	sudo systemctl restart bind9
+        sudo systemctl restart bind9
 
 __instalation is finish but we need to forward it or make it be recursive__
 
  Before going into that we need our clients to be able to acess the internet.
  For that activate forward of IP on kernel:
    
-    sudo sysctl -w net.ipv4.ip_forward=1
+        sudo sysctl -w net.ipv4.ip_forward=1
  
  then open sysctl.conf
  
-    sudo nano /etc/sysctl.conf
+        sudo vim /etc/sysctl.conf
 
  Inside the conf file write:
 
-    net.ipv4.ip_forward=1
+        net.ipv4.ip_forward=1
 
  close and save it.
 
  Activate NAT to the interface with exit to WAN (internet this case):
 
-    sudo iptables -t nat -A POSTROUTING -o (WAN interface) -j MASQUERADE
+        sudo iptables -t nat -A POSTROUTING -o (WAN interface) -j MASQUERADE
 
  To save rules after reboot on Debian must do:
 
-    sudo apt install iptables-persistent
+        sudo apt install iptables-persistent
     
-    sudo netfilter-persistent save
+        sudo netfilter-persistent save
 
  __You must have netfilter installed for IPtabales__
 
@@ -158,13 +159,13 @@ __instalation is finish but we need to forward it or make it be recursive__
 
  Test Forward DNS (Should return 192.168.100.1)
 	
-    dig @192.168.100.1 router.lab.lan +short
+        dig @192.168.100.1 router.lab.lan +short
 
  Needs to return 192.168.100.1
 
  Test Reverse DNS (Should return router.lab.lan.)
 	
-    dig @192.168.100.1 -x 192.168.100.50 +short
+        dig @192.168.100.1 -x 192.168.100.50 +short
  
   Needs to return desktop.domain.net
 
@@ -178,7 +179,7 @@ __instalation is finish but we need to forward it or make it be recursive__
 
  Open named.conf.options:
 
-    sudo nano /etc/bind/named.conf.options
+        sudo vim /etc/bind/named.conf.options
 
  Find the forwarders block, uncomment it, and add external DNS servers (like Cloudflare or Google):
  (!on allow-query choose between any or trusted according to your security means!)
@@ -215,12 +216,12 @@ options {
 
  Save, check syntax, and restart BIND9:
 
-    sudo named-checkconf
-	sudo systemctl restart bind9
+        sudo named-checkconf
+        sudo systemctl restart bind9
 
  Verify external resolution:
 
-	dig @192.168.100.1 google.com +short
+        dig @192.168.100.1 google.com +short
 
  It should return public IP addresses for Google!
  
@@ -231,7 +232,7 @@ options {
  to the  internet's root and authoritative servers.
  Open named.conf.options:
 
-    sudo nano /etc/bind/named.conf.options
+        sudo vim /etc/bind/named.conf.options
  
  inside write down: 
 ```
@@ -263,11 +264,11 @@ options {
  
  Save, check syntax, and restart BIND9:
 
-    sudo named-checkconf
-	sudo systemctl restart bind9
+        sudo named-checkconf
+        sudo systemctl restart bind9
 
  Verify external resolution:
 
-	dig @192.168.100.1 google.com +short
+        dig @192.168.100.1 google.com +short
 
  It should return public IP addresses for Google!
