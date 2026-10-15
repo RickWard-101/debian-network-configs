@@ -1,6 +1,6 @@
-# ISC Kea DHCPv4 Server Configuration
+# ISC Kea DHCPv4 Server
 
-This guide covers the installation, configuration, and validation of the **ISC Kea DHCPv4** server on Debian, designed to automate IP address provisioning for the internal LAN (`192.168.100.0/24`) "enp7s0" within the `domain.net` infrastructure.
+This guide covers the installation, configuration, and validation of the **ISC Kea DHCPv4** server on Debian, designed to automate IP address provisioning for the internal LAN (`192.168.100.0/24`) within the `domain.net` infrastructure. The LAN interface will be "enp7s0" for this example.
 !(Check BIND9 autoritative server for domain and networking information if needed)!
 
 __Introduction & Architecture__
@@ -12,9 +12,13 @@ To install the Kea DHCPv4 package on Debian:
 
         sudo apt update && sudo apt install kea-dhcp4-server -y
     
-Configuration file is located at /etc/kea/kea-dhcp4.conf
+Configuration file is located at /etc/kea/kea-dhcp4.conf.
+
 The core configuration file defines the listening interface, lease backend, lease times, and network subnets. 
-In this example i will make enp7s0 the LAN network interface, but make sure to change yours!
+Open kea-dhcp4-server:
+
+        sudo vim /etc/kea/kea-dhcp4.conf
+
 Replace the default configuration with the following clean and commented (//) JSON block:
 
 ```
@@ -79,6 +83,7 @@ Before anything verify JSON Syntax. Always test the configuration file before re
 Manage the service, with systemctl:
 
         sudo systemctl restart kea-dhcp4-server
+And:
         sudo systemctl enable kea-dhcp4-server
     
 __Check Active Leases__
@@ -88,7 +93,7 @@ Inspect the lease database to confirm clients are successfully receiving their c
     
 __Gateway Router, IP Forwarding & NAT Configuration (Debian)__
 
-This is responsible for bridging the external WAN interface and the internal LAN (`192.168.100.0/24`), enabling traffic routing and Network Address Translation (NAT/Masquerading).
+This is responsible for **bridging** the external WAN interface and the internal LAN (`192.168.100.0/24`), enabling traffic routing and Network Address Translation (NAT/Masquerading).
 
 Architecture Overview:
 In this domain, the Debian machine acts as a router. 
@@ -96,7 +101,8 @@ In this domain, the Debian machine acts as a router.
 * **LAN Interface (e.g., `enp7s0`):** Connected to the internal switch/clients with a static IP (`192.168.100.1`).
 
 __Enable IP Forwarding__
-Step-by-Step Implementation. 
+
+*(This same configuration can be seen on BIND)*
 By default, Linux kernels drop packets that are not destined for the local machine. To allow the Debian system to route packets between interfaces:
 We need our clients to be able to acess the internet.
 For that activate forward of IP on kernel:
@@ -137,12 +143,15 @@ How to fix? Check if forwarding is active:
 Verify active NAT rules: 
         sudo iptables -t nat -L -n -v. 
     
-Ensure MASQUERADE points to your active WAN interface.
+!Ensure MASQUERADE points to your active WAN interface.!
 
-❌ Issue 2: DNS queries from clients do not show the Authoritative (aa) flag or return local IPs through the local system resolver.
+❌ Issue 2: DNS queries (dig) from clients do not show the Authoritative (aa) flag or return local IPs through the local system resolver.
 
 **Cause**: Linux desktop clients (like Ubuntu/Mint) use systemd-resolved running on 127.0.0.53 as a local caching resolver, which strips original server flags.
 
 How to fix? To test the BIND9 server directly and verify authoritative responses (aa), query the DNS server's IP directly instead of relying on the local resolver:
 
-        dig @100.100.100.1 rickwardo.net
+        dig @100.100.100.1 domain.net
+        
+And that's it. Use journalctl to check info on kea DHCP in real time. Quick adventure, make a bash file to transfer all of journal data into a txt file.
+
