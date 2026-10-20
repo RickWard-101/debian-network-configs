@@ -17,7 +17,7 @@ Create a dedicated directory for your domain's files and set up an HTML presenta
 
         sudo mkdir -p /var/www/domain.net
  
-Create the generic index file at /var/www/web.domain.net:
+Create the generic index file at /var/www/domain.net:
 
         sudo vim /var/www/domain.net/index.html
         
@@ -40,7 +40,7 @@ Create the generic index file at /var/www/web.domain.net:
 <body>
     <div class="card">
         <h1>Infrastructure project Dashboard</h1>
-        <p>Active Web Server: <strong>web.domain.net</strong></p>
+        <p>Active Web Server: <strong>domain.net</strong></p>
         
         <hr>
         <h3>Active LAN Services (192.168.100.0/24):</h3>
@@ -56,13 +56,12 @@ Create the generic index file at /var/www/web.domain.net:
 ```
 
 __Configure virtual host on Nginx__
-On Nginx, every site/ service has it's own configuration file at /etc/nginx/sites-available/.
+On Nginx, every site/ service has it's own configuration file at **/etc/nginx/sites-available/.**
        
         sudo vim /etc/nginx/sites-available/domain.net
 
 This file is the creation of the web server rules (the Server Block or Virtual Host) to teach Nginx how to manage the traffic arriving at your server.
-Without this file, Nginx is "blind". 
-It receives the request on the network, but doesn't know which folder on the disk to open or who to respond to.
+Without this file, Nginx is "blind". It receives the request on the network, but doesn't know which folder on the disk to open or who to respond to.
 
 Therefore, Paste the following configuration:
 ```
@@ -115,9 +114,10 @@ Create a symbolic link to activate the site:
         sudo ln -s /etc/nginx/sites-available/domain.net /etc/nginx/sites-enabled/
 
 1. **But why?** 
-Because, in /etc/nginx/sites-available/ *(Available)* This is where you save all the actual configuration files for each site. 
+Because, in /etc/nginx/sites-available/ **(Available)** This is where you save all the actual configuration files for each site. 
 Nginx doesn't read this folder directly. It only acts as a "storage" or draft.
-On /etc/nginx/sites-enabled/ *(Active)*, This is the folder that Nginx actively reads whenever it starts or is reloaded. 
+
+On /etc/nginx/sites-enabled/ **(Active)**, This is the folder that Nginx actively reads whenever it starts or is reloaded. 
 If a file is here, the site goes online.
 
 2. **But why Use a Symbolic Link Instead of Copying the File?**
@@ -142,14 +142,13 @@ __Test syntax and reload the service:__
 While in LAN you should be able to type on browser domain.net and be able to get the page!
 
 ## Troubleshooting & Common Issues ("What if...?")
-❌ Issue 1: Browsing to http://web.domain.net results in a "Server Not Found" or DNS error on client machines.
+❌ Issue 1: Browsing to http://domain.net results in a "Server Not Found" or DNS error on client machines.
 
 **Cause**: The DNS server (BIND9) does not have an A record mapping web to the server's IP, or the client hasn't refreshed its DHCP lease/DNS cache.
 
-    How to fix:
-
-Verify the zone file (/etc/bind/db.domain.net) includes: web IN A 192.168.100.1 and ensure the serial number was incremented.
+How to fix? Verify the zone file (/etc/bind/db.domain.net) includes: web IN A 192.168.100.1 and ensure the serial number was incremented.
 Restart BIND9: 
+
         sudo systemctl restart bind9.
 Test resolution directly from the client using: dig @192.168.100.1 web.domain.net.
 
@@ -157,8 +156,8 @@ Test resolution directly from the client using: dig @192.168.100.1 web.domain.ne
 
 **Cause**: Incorrect file permissions on /var/www/domain.net or missing index.html file in the root directory.
 
-How to fix:
-Re-apply ownership permissions: 
+How to fix? Re-apply ownership permissions: 
+
         sudo chown -R www-data:www-data /var/www/domain.net.
 Confirm that index.html exists inside the target folder.
 
