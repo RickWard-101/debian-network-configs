@@ -7,13 +7,13 @@ Before anything, you must free Port 53 for BIND9 if you are running more DNS ser
 If you are running, for example, dnsmasq, before touching BIND9, verify that dnsmasq 
 is only handling DHCP and not blocking port 53!
 To disable DNS open dnsmasq.conf: 
-
-        sudo vim /etc/dnsmasq.conf
-
+```
+sudo vim /etc/dnsmasq.conf
+```
 Ensure the line port=0 is present at the bottom. Then restart dnsmasq:
-
-        sudo systemctl restart dnsmasq
-
+```
+sudo systemctl restart dnsmasq
+```
 Setting port=0 turns off dnsmasq's internal DNS server
 while keeping its DHCP server active.
 
@@ -42,8 +42,6 @@ outside your local network.
 **rndc.key**: Used for remote control of the BIND server, allowing you to manage it over 
 the network.
  
-
-
 I like to start from named.conf.options. Since we are working with two network interfaces set the following rule on options.
 Set the interface BIND9 should listen on. Use WAN IP example: `192.168.122.122`, but since 
 we want it to listen on the internal LAN interface with IP `10.0.0.1`, add the following line:
@@ -78,7 +76,7 @@ sudo vim /etc/bind/named.conf.local
 ```
 Wipe any previous test edits and paste these clean zone declarations:
  
-Forward Zone: map domain.net names to IPs
+Forward Zone: map example.com names to IPs
 ```
 zone "example.com" IN {
          type master;
@@ -87,7 +85,7 @@ zone "example.com" IN {
      };
 ```
 
-Reverse Zone: map 192.168.100.x IPs to names
+Reverse Zone: map 10.0.0.1.x IPs to names
 ```
 zone "0.0.10.IN-ADDR.ARPA" IN {
          type master;
@@ -95,8 +93,8 @@ zone "0.0.10.IN-ADDR.ARPA" IN {
          allow-transfer { 192.168.122.122; };
      };
 ```
-This tells BIND9: "I am the Master authority for example.net and 
-192.168.122.x. Here are the paths to the database files where my records are stored."
+This tells BIND9: "I am the Master authority for example.com and 
+10.0.0.x. Here are the paths to the database files where my records are stored."
 
 Create the Forward Zone Database, name to ip. (RECORDS)
 Create a new forward database file:
@@ -148,8 +146,8 @@ $TTL 86400
 Ensure that the zone files are readable by the BIND user (usually `bind`):
 
 ```
-     chown root:bind /etc/bind/example.com.db /etc/bind/10.0.0.db
-     chmod 640 /etc/bind/example.com.db /etc/bind/10.0.0.db
+chown root:bind /etc/bind/example.com.db /etc/bind/10.0.0.db
+chmod 640 /etc/bind/example.com.db /etc/bind/10.0.0.db
 ```
 
 Test the configuration files for typos:
@@ -186,11 +184,11 @@ sudo iptables -t nat -A POSTROUTING -o (WAN interface) -j MASQUERADE
 ```
 To save rules after reboot on Debian must do:
 ```
-        sudo apt install iptables-persistent
+sudo apt install iptables-persistent
 ```
 After all do:
 ```
-        sudo netfilter-persistent save
+sudo netfilter-persistent save
 ```
 
 Now that BIND9 is running, the next steps are testing the local zone queries and configuring 
@@ -300,6 +298,6 @@ sudo systemctl restart bind9
 ```
 Verify external resolution:
 ```
-dig @192.168.100.1 google.com +short
+dig @10.0.0.1 google.com 
 ```
 It should return public IP addresses for Google!
