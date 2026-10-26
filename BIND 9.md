@@ -3,191 +3,226 @@
 
 __WARNING!__
 
- Before anything, you must free Port 53 for BIND9 if you are running more DNS services.
- If you are running, for example, dnsmasq, before touching BIND9, verify that dnsmasq 
- is only handling DHCP and not blocking port 53!
- To disable DNS open dnsmasq.conf: 
+Before anything, you must free Port 53 for BIND9 if you are running more DNS services.
+If you are running, for example, dnsmasq, before touching BIND9, verify that dnsmasq 
+is only handling DHCP and not blocking port 53!
+To disable DNS open dnsmasq.conf: 
 
         sudo vim /etc/dnsmasq.conf
 
- Ensure the line port=0 is present at the bottom. Then restart dnsmasq:
+Ensure the line port=0 is present at the bottom. Then restart dnsmasq:
 
         sudo systemctl restart dnsmasq
 
- Setting port=0 turns off dnsmasq's internal DNS server
- while keeping its DHCP server active.
- 
- Also another thing, there must be two networking interfaces. For easier examples
- i will make the IP of LAN interface the following: 192.168.100.1/24. Change as you
- see fit.
+Setting port=0 turns off dnsmasq's internal DNS server
+while keeping its DHCP server active.
+
 
 __Install BIND9__
-
-        sudo apt update && sudo apt install -y bind9 bind9utils bind9-doc 
-
- Declare Zones in BIND9 so we can define which domains BIND9 owns.
- Open the local zone config file: (for LAN).
-
-        sudo vim /etc/bind/named.conf.local
-
- Wipe any previous test edits and paste these clean zone declarations:
+```
+sudo apt update && sudo apt install -y bind9 bind9utils bind9-doc 
+```
  
- Forward Zone: map domain.net names to IPs
+Before going into the configuration you must have a "basic" understanding of the configuration Files.
+Directory for this files at /etc/bind/
+
+**named.conf**: The main configuration file that includes other configuration files like 
+`named.conf.local` and `named.conf.options`. It also specifies where to find the root hints 
+(`named.cinf.root-hints`). I advice not to use this one for locals.
+  
+**named.conf.local**: This is where you define your DNS zones. You will create forward and 
+reverse DNS zones here.
+   
+**named.conf.options**: Contains global settings for the BIND server, such as listening 
+interfaces and logging.
+   
+**named.cinf.root-hints**: Lists the root DNS servers necessary for resolving domains 
+outside your local network.
+   
+**rndc.key**: Used for remote control of the BIND server, allowing you to manage it over 
+the network.
+ 
+
+
+I like to start from named.conf.options. Since we are working with two network interfaces set the following rule on options.
+Set the interface BIND9 should listen on. Use WAN IP example: `192.168.122.122`, but since 
+we want it to listen on the internal LAN interface with IP `10.0.0.1`, add the following line:
+
 ```
-zone "domain.net" {
-    type master;
-    file "/etc/bind/db.domain.net";
+options {
+    directory "/var/cache/bind";
+    listen-on { 10.0.0.1; };
+};
+
+# I really advice comment all of the logging because it will give a lot of errors later on named.
+# I will leave for advance users.
+logging {
+    channel default_log {
+        file "/var/log/named/named.log";
+        severity info;
+        print-time yes;
+    };
+    category default {
+        default_log;
+    };
+    category queries {
+        default_log;
+    };
 };
 ```
 
- Reverse Zone: map 192.168.100.x IPs to names
+Now, declare zones in BIND9 so we can define which domains BIND9 owns.
+Open the local zone config file: (for LAN).
 ```
-zone "100.168.192.in-addr.arpa" {
-    type master;
-    file "/etc/bind/db.192.168.100";
-};
+sudo vim /etc/bind/named.conf.local
 ```
- This tells BIND9: "I am the Master authority for domain.net and 
- 192.168.100.x. Here are the paths to the database files where my records are stored."
-
- Create the Forward Zone Database, name to ip. (RECORDS)
- Create a new forward database file:
-
-        sudo vim /etc/bind/db.domain.net
-
- Paste the following complete zone configuration:
-
+Wipe any previous test edits and paste these clean zone declarations:
+ 
+Forward Zone: map domain.net names to IPs
 ```
-$TTL    604800
-@       IN      SOA     router.domain.net. admin.domain.net. (
-                              2         ; Serial (version number)
-                         604800         ; Refresh
-                          86400         ; Retry
-                        2419200         ; Expire
-                         604800 )       ; Negative Cache TTL
-; This is Name Server (NS) Record (to comment in deamons use ;)
-@       IN      NS      router.domain.net.
-; Address (A) Records: Hostname -> IPv4
-router  IN      A       192.168.100.1
-desktop IN      A       192.168.100.50
+zone "example.com" IN {
+         type master;
+         file "example.com.db";
+         allow-transfer { 192.168.122.122; };
+     };
 ```
 
-__Quick breakdown:__
+Reverse Zone: map 192.168.100.x IPs to names
+```
+zone "0.0.10.IN-ADDR.ARPA" IN {
+         type master;
+         file "10.0.0.db";
+         allow-transfer { 192.168.122.122; };
+     };
+```
+This tells BIND9: "I am the Master authority for example.net and 
+192.168.122.x. Here are the paths to the database files where my records are stored."
 
-1.    @ represents the current zone name (domain.net).
-
-2.    SOA defines the master server (router.domain.net.) and admin email (admin.domain.net.).
-
-3.    NS declares router.domain.net. as the authoritative server.
-
-4.    A maps router to 192.168.100.1 and desktop to 192.168.100.50.
-**(Also, for those who do not know, in order to comment on a daemon file you must ;)**
-    
- Create the Reverse Zone Database, IP to name.
- Create a new Reverse database file:
-
-        sudo vim /etc/bind/db.192.168.100
-
- Paste the following complete zone configuration:
+Create the Forward Zone Database, name to ip. (RECORDS)
+Create a new forward database file:
+```
+sudo vim /etc/bind/example.com.db
+```
+Paste the following complete zone configuration:
 
 ```
 $TTL    604800
-@       IN      SOA     router.domain.net admin.domain.net. (
-                              1         
-                         604800         
-                          86400         
-                        2419200         
-                         604800 )       
-@       IN      NS      router.domain.net.
-1       IN      PTR     router.domain.net.
-50      IN      PTR     desktop.domain.net.
+$TTL 86400
+@       IN      SOA     ns1.example.com. admin.example.com. (
+                         1          ; Serial number
+                         86400      ; Refresh
+                         7200       ; Retry
+                         604800     ; Expire
+                         86400 )    ; Minimum
+@       IN      NS      ns1.example.com.
+@       IN      NS      ns2.example.com.
+
+ns1     IN      A       10.0.0.1
+@       IN      A       10.0.0.1
+www     IN      A       10.0.0.2
 ```
- Quick breakdown: 
- The number 1 stands for 192.168.100.1 and maps back to router.domain.net. 
- Note the trailing dot at the end of domain names to prevent BIND from appending .domain.net twice.
 
- Test the configuration files for typos:
- Check general configuration (prints nothing if syntax is clean)
+Create the Reverse Zone Database, IP to name.
+Create a new Reverse database file:
+```
+sudo vim /etc/bind/10.0.0.db
+```
+Paste the following complete zone configuration:
 
-        sudo named-checkconf
+```
+$TTL 86400
+@       IN      SOA     ns1.example.com. admin.example.com. (
+                         1          ; Serial number
+                         86400      ; Refresh
+                         7200       ; Retry
+                         604800     ; Expire
+                         86400 )    ; Minimum
 
- Check forward zone file:
+@       IN      NS      ns1.example.com.
+@       IN      NS      ns2.example.com.
 
-        sudo named-checkzone domain.net /etc/bind/db.domain.net
+1       IN      PTR     example.com.
+2       IN      PTR     www.example.com.
+```
 
- Check reverse zone file:
+Ensure that the zone files are readable by the BIND user (usually `bind`):
 
-        sudo named-checkzone 100.168.192.in-addr.arpa /etc/bind/db.192.168.100
+```
+     chown root:bind /etc/bind/example.com.db /etc/bind/10.0.0.db
+     chmod 640 /etc/bind/example.com.db /etc/bind/10.0.0.db
+```
 
- If both zone checks output OK, restart BIND9:
-	
-        sudo systemctl restart bind9
-
+Test the configuration files for typos:
+Check general configuration (prints nothing if syntax is clean)
+```
+sudo named-checkconf
+sudo named-checkzone 0.0.10.in-addr.arpa /etc/bind/10.0.0.db
+sudo named-checkzone example.com /etc/bind/example.com.db
+```
+If both zone checks output OK, restart BIND9:
+```
+sudo systemctl restart bind9
+```
 __instalation is finish but we need to forward it or make it be recursive__
 
- Before going into that we need our clients to be able to acess the internet.
- For that activate forward of IP on kernel:
-   
-        sudo sysctl -w net.ipv4.ip_forward=1
- 
- then open sysctl.conf
- 
-        sudo vim /etc/sysctl.conf
+Before going into that we need our clients to be able to acess the internet.
+For that activate forward of IP on kernel:
+```   
+sudo sysctl -w net.ipv4.ip_forward=1
+```
+then open sysctl.conf
+```
+sudo vim /etc/sysctl.conf
+```
+Inside the conf file write:
+```
+net.ipv4.ip_forward=1
+```
+close and save it.
 
- Inside the conf file write:
-
-        net.ipv4.ip_forward=1
-
- close and save it.
-
- Activate NAT to the interface with exit to WAN (internet this case):
-
-        sudo iptables -t nat -A POSTROUTING -o (WAN interface) -j MASQUERADE
-
- To save rules after reboot on Debian must do:
-
+Activate NAT to the interface with exit to WAN (internet this case):
+```
+sudo iptables -t nat -A POSTROUTING -o (WAN interface) -j MASQUERADE
+```
+To save rules after reboot on Debian must do:
+```
         sudo apt install iptables-persistent
-    
+```
+After all do:
+```
         sudo netfilter-persistent save
+```
 
- **You must have netfilter installed for IPtabales**
+Now that BIND9 is running, the next steps are testing the local zone queries and configuring 
+upstream forwarding so the network can resolve both your private example.com domain and public internet sites (like google.com).
+but before that, test Local Resolution with dig.
+Run a forward and reverse lookup against your/this config router's BIND9 service:
 
- Now that BIND9 is running, the next steps are testing the local zone queries and configuring 
- upstream forwarding so the network can resolve both your private domain.net domain and public internet sites (like google.com).
- but before that, test Local Resolution with dig.
- Run a forward and reverse lookup against your/this config router's BIND9 service:
+Test Forward DNS 
+```	
+dig @10.0.0.1 router.example.com 
+```
+Test Reverse DNS
+```	
+dig @10.0.0.1 -x 10.0.0.2 +short
+```
+Needs to return desktop.example.com
 
- Test Forward DNS (Should return 192.168.100.1)
-	
-        dig @192.168.100.1 router.domain.net +short
-
- Needs to return 192.168.100.1
-
- Test Reverse DNS (Should return router.domain.net.)
-	
-        dig @192.168.100.1 -x 192.168.100.50 +short
- 
-  Needs to return desktop.domain.net
-
- Now configure Upstream Forwarders in BIND9. 
+Now configure Upstream Forwarders in BIND9. 
  
 # FOR SECURITY REASONS DON'T USE FORWARDER | RECURSIVE BELLOW!
  
  __FORWARDER (RELAY MODE)__
- This will Enables public internet DNS resolution because right now, BIND9 only knows about domain.net. 
- If a client asks for google.com, BIND9 will fail. We need to tell BIND9 where to forward external queries.
+This will Enables public internet DNS resolution because right now, BIND9 only knows about example.com.
+If a client asks for google.com, BIND9 will fail. We need to tell BIND9 where to forward external queries.
 
- Open named.conf.options:
-
-        sudo vim /etc/bind/named.conf.options
-
- Find the forwarders block, uncomment it, and add external DNS servers (like Cloudflare or Google):
- (!on allow-query choose between any or trusted according to your security means!)
+back to named.conf.options, open it and find the forwarders block, uncomment it, and add external DNS servers (like Cloudflare or Google):
+(!on allow-query choose between any or trusted according to your security means!)
 
 ```
 acl trusted {
     127.0.0.1;
-    192.168.100.0/24;    # Change to match your local network subnet
+    10.0.0.0/24;    # Change to match your local network subnet
 };
 
 options {
@@ -214,27 +249,23 @@ options {
 };
 ```
 
- Save, check syntax, and restart BIND9:
+Save, check syntax, and restart BIND9:
+```
+sudo named-checkconf
+sudo systemctl restart bind9
+```
+Verify external resolution:
 
-        sudo named-checkconf
-        sudo systemctl restart bind9
+dig @10.0.0.1 google.com +short
 
- Verify external resolution:
-
-        dig @192.168.100.1 google.com +short
-
- It should return public IP addresses for Google!
+It should return public IP addresses for Google!
  
  __RECURSIVE (FULL RESOLUTION)__
  
- The Full Recursive Configuration (Maximum Privacy/Independence).
- Use this if you do not trust external DNS providers and want your server to talk directly 
- to the  internet's root and authoritative servers.
- Open named.conf.options:
-
-        sudo vim /etc/bind/named.conf.options
- 
- inside write down: 
+The Full Recursive Configuration (Maximum Privacy/Independence).
+Use this if you do not trust external DNS providers and want your server to talk directly 
+to the  internet's root and authoritative servers.
+Open named.conf.options and inside write down: 
 ```
  acl trusted {
     127.0.0.1;
@@ -257,18 +288,18 @@ options {
     version "none";
 };
 ```
- Quick breakdown:
- (acl trusted & allow-query) are crucial for security. Without this, your BIND server becomes an "open resolver," which hackers can abuse to launch massive DDoS attacks against other websites.
- (directory) tells BIND where to store its runtime files and cache data.
- (dnssec-validation auto) Protects your network against DNS spoofing/poisoning attacks by verifying cryptographic signatures on domains.
+Quick breakdown:
+(acl trusted & allow-query) are crucial for security. Without this, your BIND server becomes an "open resolver," which hackers can abuse to launch massive DDoS attacks against other websites.
+(directory) tells BIND where to store its runtime files and cache data.
+(dnssec-validation auto) Protects your network against DNS spoofing/poisoning attacks by verifying cryptographic signatures on domains.
  
- Save, check syntax, and restart BIND9:
-
-        sudo named-checkconf
-        sudo systemctl restart bind9
-
- Verify external resolution:
-
-        dig @192.168.100.1 google.com +short
-
- It should return public IP addresses for Google!
+Save, check syntax, and restart BIND9:
+```
+sudo named-checkconf
+sudo systemctl restart bind9
+```
+Verify external resolution:
+```
+dig @192.168.100.1 google.com +short
+```
+It should return public IP addresses for Google!

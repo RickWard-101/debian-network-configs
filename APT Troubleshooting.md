@@ -1,6 +1,6 @@
 # Debian APT & Network Troubleshooting Guide
 
-__Issue 1: APT cdrom:// Repository Error__
+## Issue 1: APT cdrom:// Repository Error
 Symptom -> When running apt update, APT returns errors similar to:
 
 Error:	2 cdrom://[Debian GNU/Linux ...] trixie Release
@@ -10,7 +10,7 @@ The cause of this is because during installation from an ISO/media, Debian adds 
 active repository in /etc/apt/sources.list. When the media is unmounted or disconnected,
 apt fails to read package lists from the CD-ROM. Additionally, the online http:// mirrors are disabled by default (commented out with #).
 
-## Solution -> Open:
+__Solution -> Open:__
 
  	vim /etc/apt/sources.list
 
@@ -33,7 +33,7 @@ non-free-firmware: Closed-source drivers required for hardware initialization (W
 non-free: Proprietary, closed-source software (NVIDIA drivers, unrar, proprietary codecs).
 To enable full non-free packages, append non-free to the end of the active repository lines in /etc/apt/sources.list.
 
-__Issue 2: Temporary Failure Resolving Domain__
+## Issue 2: Temporary Failure Resolving Domain
 Symptom -> When running apt update, APT returns warnings/errors:
 
 
@@ -49,7 +49,7 @@ Test DNS resolution:
         ping -c 3 deb.debian.org
 
 If step 1 worked but step 2 failed: Internet connectivity is present, but DNS server configuration is missing.
-## Solution (Fixing DNS) -> Open
+__Solution (Fixing DNS) -> Open__
 	
 	vim /etc/resolv.conf
 
