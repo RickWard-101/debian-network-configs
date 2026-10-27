@@ -42,7 +42,7 @@ outside your local network.
 **rndc.key**: Used for remote control of the BIND server, allowing you to manage it over 
 the network.
  
-I like to start from named.conf.options. Since we are working with two network interfaces set the following rule on options.
+I like to start from `named.conf.options`. Since we are working with two network interfaces set the following rule on options.
 Set the interface BIND9 should listen on. Use WAN IP example: `192.168.122.122`, but since 
 we want it to listen on the internal LAN interface with IP `10.0.0.1`, add the following line:
 
@@ -105,7 +105,6 @@ Paste the following complete zone configuration:
 
 ```
 $TTL    604800
-$TTL 86400
 @       IN      SOA     ns1.example.com. admin.example.com. (
                          1          ; Serial number
                          86400      ; Refresh
@@ -214,7 +213,7 @@ Now configure Upstream Forwarders in BIND9.
 This will Enables public internet DNS resolution because right now, BIND9 only knows about example.com.
 If a client asks for google.com, BIND9 will fail. We need to tell BIND9 where to forward external queries.
 
-back to named.conf.options, open it and find the forwarders block, uncomment it, and add external DNS servers (like Cloudflare or Google):
+back to `named.conf.options`, open it and find the forwarders block, uncomment it, and add external DNS servers (like Cloudflare or Google):
 (!on allow-query choose between any or trusted according to your security means!)
 
 ```
