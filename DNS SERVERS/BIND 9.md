@@ -1,40 +1,23 @@
 
 # BIND9 SERVER
 
-__WARNING!__
-
-Before anything, you must free Port 53 for BIND9 if you are running more DNS services.
-If you are running, for example, dnsmasq, before touching BIND9, verify that dnsmasq 
-is only handling DHCP and not blocking port 53!
-To disable DNS open dnsmasq.conf: 
-```
-sudo vim /etc/dnsmasq.conf
-```
-Ensure the line port=0 is present at the bottom. Then restart dnsmasq:
-```
-sudo systemctl restart dnsmasq
-```
-Setting port=0 turns off dnsmasq's internal DNS server
-while keeping its DHCP server active.
-
-
-__Install BIND9__
+__Install Named BIND9__
 ```
 sudo apt update && sudo apt install -y bind9 bind9utils bind9-doc 
 ```
  
-Before going into the configuration you must have a "basic" understanding of the configuration Files.
-Directory for this files at /etc/bind/
+Before going into the configuration you must have a basic understanding of the configuration Files.
+Directory for this files are at `/etc/bind/`
 
 **named.conf**: The main configuration file that includes other configuration files like 
 `named.conf.local` and `named.conf.options`. It also specifies where to find the root hints 
-(`named.cinf.root-hints`). I advice not to use this one for locals.
+(`named.cinf.root-hints`). 
   
 **named.conf.local**: This is where you define your DNS zones. You will create forward and 
 reverse DNS zones here.
    
 **named.conf.options**: Contains global settings for the BIND server, such as listening 
-interfaces and logging.
+interfaces and logging. Tells bind9 where to find files.
    
 **named.cinf.root-hints**: Lists the root DNS servers necessary for resolving domains 
 outside your local network.
@@ -42,9 +25,15 @@ outside your local network.
 **rndc.key**: Used for remote control of the BIND server, allowing you to manage it over 
 the network.
  
-I like to start from `named.conf.options`. Since we are working with two network interfaces set the following rule on options.
-Set the interface BIND9 should listen on. Use WAN IP example: `192.168.122.122`, but since 
-we want it to listen on the internal LAN interface with IP `10.0.0.1`, add the following line:
+ 
+Bind9 can work as 3 types of DNS servers.
+1. Caching nameserver - Recursion or Forwarding.
+2. Primary master. 
+3. Secondary master. 
+
+I like to start from `named.conf.options`.
+First identify which interface BIND9 should listen on. WAN IP example: `192.168.122.122`, and LAN IP example `10.0.0.1`.
+Since we want it to listen on the internal LAN interface with IP `10.0.0.1`, add the following line:
 
 ```
 options {
@@ -70,10 +59,8 @@ logging {
 ```
 
 Now, declare zones in BIND9 so we can define which domains BIND9 owns.
-Open the local zone config file: (for LAN).
-```
-sudo vim /etc/bind/named.conf.local
-```
+Open the local zone config file located at `/etc/bind/named.conf.local`
+
 Wipe any previous test edits and paste these clean zone declarations:
  
 Forward Zone: map example.com names to IPs
@@ -113,7 +100,7 @@ $TTL    604800
                          86400 )    ; Minimum
 @       IN      NS      ns1.example.com.
 @       IN      NS      ns2.example.com.
-
+;
 ns1     IN      A       10.0.0.1
 @       IN      A       10.0.0.1
 www     IN      A       10.0.0.2
@@ -137,7 +124,7 @@ $TTL 86400
 
 @       IN      NS      ns1.example.com.
 @       IN      NS      ns2.example.com.
-
+;
 1       IN      PTR     example.com.
 2       IN      PTR     www.example.com.
 ```
@@ -162,7 +149,7 @@ sudo systemctl restart bind9
 ```
 __instalation is finish but we need to forward it or make it be recursive__
 
-Before going into that we need our clients to be able to acess the internet.
+Before going into that, we need our clients to be able to acess the internet.
 For that activate forward of IP on kernel:
 ```   
 sudo sysctl -w net.ipv4.ip_forward=1
@@ -203,7 +190,6 @@ Test Reverse DNS
 ```	
 dig @10.0.0.1 -x 10.0.0.2 +short
 ```
-Needs to return desktop.example.com
 
 Now configure Upstream Forwarders in BIND9. 
  
@@ -211,7 +197,8 @@ Now configure Upstream Forwarders in BIND9.
  
  __FORWARDER (RELAY MODE)__
 This will Enables public internet DNS resolution because right now, BIND9 only knows about example.com.
-If a client asks for google.com, BIND9 will fail. We need to tell BIND9 where to forward external queries.
+If a client asks for google.com, BIND9 will fail. Something needs to tell BIND9 where to forward external queries.
+In other words skips talking to the root servers entirely. Instead, it hands the request off to an upstream DNS server (the forwarder) and waits for that server to do the recursive work and return the answer.
 
 back to `named.conf.options`, open it and find the forwarders block, uncomment it, and add external DNS servers (like Cloudflare or Google):
 (!on allow-query choose between any or trusted according to your security means!)
@@ -229,7 +216,7 @@ options {
     allow-query { trusted; };
     allow-recursion { trusted; };
 
-    // Forwarder Setup
+    // Forwarder Setup | YOU CAN IGNORE EVERYTHING ELSE AND JUST USE THIS FUNCTION IF YOU WISH |
     forwarders {
         1.1.1.1;       
         8.8.8.8;       
@@ -262,7 +249,8 @@ It should return public IP addresses for Google!
 The Full Recursive Configuration (Maximum Privacy/Independence).
 Use this if you do not trust external DNS providers and want your server to talk directly 
 to the  internet's root and authoritative servers.
-Open named.conf.options and inside write down: 
+In other words, it reaches out directly to the global DNS hierarchy, starting with the root servers, then moving to the TLD servers, and finally the authoritative servers.
+Open `named.conf.options` and inside write down: 
 ```
  acl trusted {
     127.0.0.1;
@@ -300,3 +288,21 @@ Verify external resolution:
 dig @10.0.0.1 google.com 
 ```
 It should return public IP addresses for Google!
+
+__WARNING!__
+
+you must free Port 53 for BIND9 if you are running more DNS services.
+If you are running, for example, dnsmasq, before touching BIND9, verify that dnsmasq 
+is only handling DHCP and not blocking port 53!
+To disable DNS open dnsmasq.conf: 
+```
+sudo vim /etc/dnsmasq.conf
+```
+Ensure the line port=0 is present at the bottom. Then restart dnsmasq:
+```
+sudo systemctl restart dnsmasq
+```
+Setting port=0 turns off dnsmasq's internal DNS server
+while keeping its DHCP server active.
+
+If sudo systemctl restart named is not working then remove the logs from `named.conf.options` .
