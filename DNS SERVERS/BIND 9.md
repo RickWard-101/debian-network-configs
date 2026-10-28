@@ -67,7 +67,7 @@ Forward Zone: map example.com names to IPs
 ```
 zone "example.com" IN {
          type master;
-         file "example.com.db";
+         file "db.example.com";
          allow-transfer { 192.168.122.122; };
      };
 ```
@@ -76,7 +76,7 @@ Reverse Zone: map 10.0.0.1.x IPs to names
 ```
 zone "0.0.10.IN-ADDR.ARPA" IN {
          type master;
-         file "10.0.0.db";
+         file "db.10.0.0";
          allow-transfer { 192.168.122.122; };
      };
 ```
@@ -86,7 +86,7 @@ This tells BIND9: "I am the Master authority for example.com and
 Create the Forward Zone Database, name to ip. (RECORDS)
 Create a new forward database file:
 ```
-sudo vim /etc/bind/example.com.db
+sudo vim /etc/bind/db.example.com
 ```
 Paste the following complete zone configuration:
 
@@ -109,7 +109,7 @@ www     IN      A       10.0.0.2
 Create the Reverse Zone Database, IP to name.
 Create a new Reverse database file:
 ```
-sudo vim /etc/bind/10.0.0.db
+sudo vim /etc/bind/db.10.0.0.
 ```
 Paste the following complete zone configuration:
 
@@ -132,16 +132,16 @@ $TTL 86400
 Ensure that the zone files are readable by the BIND user (usually `bind`):
 
 ```
-chown root:bind /etc/bind/example.com.db /etc/bind/10.0.0.db
-chmod 640 /etc/bind/example.com.db /etc/bind/10.0.0.db
+chown root:bind /etc/bind/db.example.com /etc/bind/db.10.0.0
+chmod 640 /etc/bind/db.example.com /etc/bind/db.10.0.0
 ```
 
 Test the configuration files for typos:
 Check general configuration (prints nothing if syntax is clean)
 ```
 sudo named-checkconf
-sudo named-checkzone 0.0.10.in-addr.arpa /etc/bind/10.0.0.db
-sudo named-checkzone example.com /etc/bind/example.com.db
+sudo named-checkzone 0.0.10.in-addr.arpa /etc/bind/db.10.0.0
+sudo named-checkzone example.com /etc/bind/db.example.com
 ```
 If both zone checks output OK, restart BIND9:
 ```
