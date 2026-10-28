@@ -41,21 +41,6 @@ options {
     listen-on { 10.0.0.1; };
 };
 
-# I really advice comment all of the logging because it will give a lot of errors later on named.
-# I will leave for advance users.
-logging {
-    channel default_log {
-        file "/var/log/named/named.log";
-        severity info;
-        print-time yes;
-    };
-    category default {
-        default_log;
-    };
-    category queries {
-        default_log;
-    };
-};
 ```
 
 Now, declare zones in BIND9 so we can define which domains BIND9 owns.
@@ -102,6 +87,7 @@ $TTL    604800
 @       IN      NS      ns2.example.com.
 ;
 ns1     IN      A       10.0.0.1
+ns2     IN      A       10.0.0.1
 @       IN      A       10.0.0.1
 www     IN      A       10.0.0.2
 ```
