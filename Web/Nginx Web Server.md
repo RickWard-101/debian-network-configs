@@ -1,27 +1,25 @@
  # Nginx Web Server
 
-This guide covers the installation and configuration of the **Nginx** web server on Debian, used to host internal infrastructure and serve web pages under the local domain (`web.domain.net`).
+This guide covers the installation and configuration of the **Nginx** web server on Debian, used to host internal infrastructure and serve web pages under the local domain (`example.com`).
 
 __WARNING.__ 
-In this setup, Nginx acts as the local HTTP server listening on port 80. Combined with the local **BIND9 DNS server**, client machines on the LAN (`192.168.100.0/24`) can resolve `web.domain.net` directly to the gateway/server IP and instantly load the domain presentation dashboard.
+In this setup, Nginx acts as the local HTTP server listening on port 80. Combined with the local **BIND9 DNS server**, client machines on the LAN (`10.0.0.0/24`) can resolve `example.com` directly to the gateway/server IP and instantly load the domain presentation dashboard.
 **Make sure to check the authoritative DNS server installation of BIND9.**
-And no, you will not be able to access the domain over WAN because the 13 DNS ROOT servers **don't know who domain.net is!** Use a VPN from within the LAN to be able just type www.domain.net and work. 
+And no, you will not be able to access the domain over WAN because the 13 DNS ROOT servers **does not know who example.com is!** Use a VPN from within the LAN to be able just type www.example.com and work. 
 
 __Instalation and configuration__
 
 Update package lists and install Nginx on the Debian server:
-
-        sudo apt update && sudo apt install nginx -y
-        
+```
+sudo apt update && sudo apt install nginx -y
+```
 Create a dedicated directory for your domain's files and set up an HTML presentation page.
+```
+sudo mkdir -p /var/www/example.com
+```
 
-        sudo mkdir -p /var/www/domain.net
- 
-Create the generic index file at /var/www/domain.net:
-
-        sudo vim /var/www/domain.net/index.html
-        
-**Create the index to your liking, this is just default fun HTML index file.**
+Create the generic index file inside the new folder.
+  **Create the index to your liking, this is just default fun HTML index file.**
 
 ```
         <!DOCTYPE html>
@@ -43,7 +41,7 @@ Create the generic index file at /var/www/domain.net:
         <p>Active Web Server: <strong>domain.net</strong></p>
         
         <hr>
-        <h3>Active LAN Services (192.168.100.0/24):</h3>
+        <h3>Active LAN Services (10.0.0.1/24):</h3>
         <ul>
             <li><strong>Gateway & NAT:</strong> Debian Linux (IPTables)</li>
             <li><strong>DNS Server:</strong> BIND9</li>
@@ -56,25 +54,22 @@ Create the generic index file at /var/www/domain.net:
 ```
 
 __Configure virtual host on Nginx__
-On Nginx, every site/ service has it's own configuration file at **/etc/nginx/sites-available/.**
-       
-        sudo vim /etc/nginx/sites-available/domain.net
-
-This file is the creation of the web server rules (the Server Block or Virtual Host) to teach Nginx how to manage the traffic arriving at your server.
+On Nginx, every site/ service has it's own configuration file at `/etc/nginx/sites-available/`. Inside this folder create the the configuration file.
+This file, is the creation of the web server rules (the Server Block or Virtual Host) to teach Nginx how to manage the traffic arriving at your server.
 Without this file, Nginx is "blind". It receives the request on the network, but doesn't know which folder on the disk to open or who to respond to.
-
 Therefore, Paste the following configuration:
 ```
 server {
     listen 80;
     listen [::]:80;
 
-    server_name web.domain.net domain.net;
+    server_name www.example.com example.com;
 
-    root /var/www/domain.net;
-    index index.html;
+    root /var/www/example.com;
+    
 
     location / {
+        index index.html;
         try_files $uri $uri/ =404;
     }
 

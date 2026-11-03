@@ -13,5 +13,4 @@ I advice to follow this project to learn more about networking.
 __Details about the networking__
 
 Every server that needs two networking interfaces, in all configuration files, the LAN interface will always
-be the static IP 192.168.1.1/24 . Change this IP as you wish but make sure to change it on every configuration file.
-You need to have a bit of information on networking to understand what is going on in the conf files and general topology.
+be the static IP 10.0.0.1/24 . Change this IP as you wish but make sure to change it on every configuration file.
