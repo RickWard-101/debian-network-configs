@@ -68,8 +68,7 @@ zone "0.0.10.IN-ADDR.ARPA" IN {
 This tells BIND9: "I am the Master authority for example.com and 
 10.0.0.x. Here are the paths to the database files where my records are stored."
 
-Create the Forward Zone Database, name to ip. (RECORDS)
-Create a new forward database file:
+Create the Forward Zone Database, name to ip. (RECORDS):
 ```
 sudo vim /etc/bind/db.example.com
 ```
@@ -240,7 +239,7 @@ Open `named.conf.options` and inside write down:
 ```
  acl trusted {
     127.0.0.1;
-    192.168.100.0/24;   
+    10.0.0.0/24;   
 };
 
 options {
