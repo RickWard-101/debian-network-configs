@@ -29,39 +29,39 @@ __Main Components of OpenStack__
 
 Service ------------------- Code Name
                     
-Identity Service .......... Keystone 
+Identity Service ..........> Keystone 
 
-Compute Service ........... Nova
+Compute Service ...........> Nova
 
-Image Service ............. Glance
+Image Service .............> Glance
 
-Dashboard ................. Horizon
+Dashboard .................> Horizon
     
-Object Storage ............ Swift
+Object Storage ............> Swift
 
-Block Storage ............. Cinder
+Block Storage .............> Cinder
 
-Network Service ........... Neutron
+Network Service ...........> Neutron
 
-Load Balancing Service .... Octavia
+Load Balancing Service ....> Octavia
 
-Orchestration Service ..... Heat
+Orchestration Service .....> Heat
 
-Metering Service .......... Ceilometer
+Metering Service ..........> Ceilometer
         
-Rating Service ............ CloudKitty
+Rating Service ............> CloudKitty
 
-Database Service .......... Trove
+Database Service ..........> Trove
 
-Container Service ......... Magnum
+Container Service .........> Magnum
 
-Data Processing Service ... Sahara
+Data Processing Service ...> Sahara
 
-Bare Metal Provisioning ... Ironic
+Bare Metal Provisioning ...> Ironic
 
-Shared File System ........ Manila
+Shared File System ........> Manila
 
-DNS Service ............... Designate
+DNS Service ...............> Designate
 
-Key Manager Service ....... Barbican
+Key Manager Service .......> Barbican
 
