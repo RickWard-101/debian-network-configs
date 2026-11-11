@@ -26,13 +26,13 @@ I install them and configure them in this order:
 
 __Main Components of OpenStack__
 
-Service |_______________________| Code Name
+ |      Service     |_______________________|       Code Name       |
                     
-[Identity Service] -------------> Keystone 
+[Identity Service]  <----------------------->       Keystone 
 
-[Compute Service] -------------> Nova
+[Compute Service]   <----------------------->       Nova
 
-[Image Service] -------------> Glance
+[Image Service]     <----------------------->       Glance
 
 [Dashboard] -------------> Horizon
     
