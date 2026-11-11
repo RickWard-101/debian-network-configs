@@ -25,10 +25,13 @@ I install them and configure them in this order:
 6. ETCD - *snapshot and source of truth*
 
 __Main Components of OpenStack__
-_______________________
- | ______ Service ______ | _______________________|       Code Name       |
- |
-______________________
+
+| Month    | Savings |
+| -------- | ------- |
+| January  | $250    |
+| February | $80     |
+| March    | $420    |
+
                     
 [Identity Service]  <----------------------->       Keystone 
 
