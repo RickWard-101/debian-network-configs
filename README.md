@@ -26,7 +26,7 @@ I install them and configure them in this order:
 
 __Main Components of OpenStack__
 
- |      Service     |_______________________|       Code Name       |
+ | ______ Service ___ | _______________________|       Code Name       |
                     
 [Identity Service]  <----------------------->       Keystone 
 
