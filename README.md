@@ -25,8 +25,10 @@ I install them and configure them in this order:
 6. ETCD - *snapshot and source of truth*
 
 __Main Components of OpenStack__
-  _______________________
+_______________________
  | ______ Service ______ | _______________________|       Code Name       |
+ |
+______________________
                     
 [Identity Service]  <----------------------->       Keystone 
 
