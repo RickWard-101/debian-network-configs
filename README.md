@@ -26,46 +26,24 @@ I install them and configure them in this order:
 
 __Main Components of OpenStack__
 
-| Month    | Savings |
-| -------- | ------- |
-| January  | $250    |
-| February | $80     |
-| March    | $420    |
-
-                    
-[Identity Service]  <----------------------->       Keystone 
-
-[Compute Service]   <----------------------->       Nova
-
-[Image Service]     <----------------------->       Glance
-
-[Dashboard] -------------> Horizon
-    
-[Object Storage] -------------> Swift
-
-[Block Storage] -------------> Cinder
-
-[Network Service] ...........> Neutron
-
-[Load Balancing Service] ....> Octavia
-
-[Orchestration Service] .....> Heat
-
-[Metering Service] ..........> Ceilometer
-        
-[Rating Service] ............> CloudKitty
-
-[Database Service] ..........> Trove
-
-[Container Service] .........> Magnum
-
-[Data Processing Service] ...> Sahara
-
-[Bare Metal Provisioning] ...> Ironic
-
-[Shared File System] ........> Manila
-
-[DNS Service] ...............> Designate
-
-[Key Manager Service] .......> Barbican
+|       SERVICE          |       Codename     |
+| ---------------------- | ------------------ |
+|Identity Service        | Keystone 
+|Compute Service         | Nova
+|Image Service           | Glance
+|Dashboard               | Horizon
+|Object Storage          | Swift
+|Block Storage           | Cinder
+|Network Service         | Neutron
+|Load Balancing Service  | Octavia
+|Orchestration Service   | Heat
+|Metering Service        | Ceilometer
+|Rating Service          | CloudKitty
+|Database Service        | Trove
+|Container Service       | Magnum
+|Data Processing Service | Sahara
+|Bare Metal Provisioning | Ironic
+|Shared File System      | Manila
+|DNS Service             | Designate
+|Key Manager Service     | Barbican
 
