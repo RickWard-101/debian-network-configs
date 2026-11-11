@@ -4,8 +4,7 @@ __What is this project about?__
 This project is my learning experience on how to build and configure a cloud computing using **Openstack**.
 I am also putting some other servers in here like DNS, DHCP, Email servers and ETC. (I am not focusing so much on those, since Cloud Computing takes a lot of efford).
 I am using VM's (virtual machines), but everything done here can be applied to real physical hardware. *For the OpenStack VM i recommend at least a 16gb or RAM and 6 Cores.*
-It can be used as a safe copy & paste tool for when working with configurations on servers. | __THIS IS DEBIAN ONLY__ |
-
+It can be used as a safe copy & paste tool for when working with configurations on servers. 
 # Important details/ warnings:
 __Details about the networking__
 
@@ -27,41 +26,41 @@ I install them and configure them in this order:
 
 __Main Components of OpenStack__
 
-Service ------------------- Code Name
+Service |_______________________| Code Name
                     
-Identity Service ..........> Keystone 
+[Identity Service] -------------> Keystone 
 
-Compute Service ...........> Nova
+[Compute Service] -------------> Nova
 
-Image Service .............> Glance
+[Image Service] -------------> Glance
 
-Dashboard .................> Horizon
+[Dashboard] -------------> Horizon
     
-Object Storage ............> Swift
+[Object Storage] -------------> Swift
 
-Block Storage .............> Cinder
+[Block Storage] -------------> Cinder
 
-Network Service ...........> Neutron
+[Network Service] ...........> Neutron
 
-Load Balancing Service ....> Octavia
+[Load Balancing Service] ....> Octavia
 
-Orchestration Service .....> Heat
+[Orchestration Service] .....> Heat
 
-Metering Service ..........> Ceilometer
+[Metering Service] ..........> Ceilometer
         
-Rating Service ............> CloudKitty
+[Rating Service] ............> CloudKitty
 
-Database Service ..........> Trove
+[Database Service] ..........> Trove
 
-Container Service .........> Magnum
+[Container Service] .........> Magnum
 
-Data Processing Service ...> Sahara
+[Data Processing Service] ...> Sahara
 
-Bare Metal Provisioning ...> Ironic
+[Bare Metal Provisioning] ...> Ironic
 
-Shared File System ........> Manila
+[Shared File System] ........> Manila
 
-DNS Service ...............> Designate
+[DNS Service] ...............> Designate
 
-Key Manager Service .......> Barbican
+[Key Manager Service] .......> Barbican
 
