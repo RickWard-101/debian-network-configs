@@ -65,3 +65,4 @@ Save and test resolution again:
 
 THIS WILL NOT SAVE AFTER BOOT BECAUSE /etc/resolv.conf WILL BE OVERWRITEN BY DHCP SERVER / STATIC 
 
+-> more updates soon
