@@ -50,4 +50,4 @@ __Main Components of OpenStack__
 IMAGE STILL NEEDS UPDATE:
 
 
-
+![alt image](https://github.com/RickWard-101/debian-network-configs/blob/885d13a306af80a9f2282b3d773debccd44b2fcd/openstack.png)
