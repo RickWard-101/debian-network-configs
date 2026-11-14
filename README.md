@@ -48,5 +48,5 @@ __Main Components of OpenStack__
 |Key Manager Service     | Barbican           |
 
 
-
+![image alt](https://github.com/RickWard-101/debian-network-configs/blob/252e2cc08fb06d0d3c07e02d708e8568a07931dd/Diagrama1.dia)
 
